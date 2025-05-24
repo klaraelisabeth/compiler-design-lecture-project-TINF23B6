@@ -98,7 +98,7 @@ public class TypeChecker extends ASTSemaVisitor<ExprResult> {
   public ExprResult visitEqualityExpr(ASTEqualityExprNode node) {
     var operands = node.getOperands();
     if (operands.size() == 1) {
-      ExprResult result = visit(operands.getFirst());
+      ExprResult result = visit(operands.get(0));
       node.setEvaluatedSymbolType(result.getType());
       return result;
     } else {
@@ -116,7 +116,7 @@ public class TypeChecker extends ASTSemaVisitor<ExprResult> {
   public ExprResult visitAdditiveExpr(ASTAdditiveExprNode node) {
     var operands = node.getOperands();
     if (operands.size() == 1) {
-      ExprResult result = visit(operands.getFirst());
+      ExprResult result = visit(operands.get(0));
       node.setEvaluatedSymbolType(result.getType());
       return result;
     } else {
@@ -134,7 +134,7 @@ public class TypeChecker extends ASTSemaVisitor<ExprResult> {
   public ExprResult visitMultiplicativeExpr(ASTMultiplicativeExprNode node) {
     var operands = node.getOperands();
     if (operands.size() == 1) {
-      ExprResult result = visit(operands.getFirst());
+      ExprResult result = visit(operands.get(0));
       node.setEvaluatedSymbolType(result.getType());
       return result;
     } else {
@@ -214,4 +214,39 @@ public class TypeChecker extends ASTSemaVisitor<ExprResult> {
 
     return new ExprResult(node.setEvaluatedSymbolType(resultType));
   }
+
+
+
+  //Gruppe 5 For-Loop
+  @Override
+  public ExprResult visitForLoop(ASTForLoopNode node) {
+    ASTVarDeclNode varDeclNode = node.getInitialization();
+    ExprResult varDeclResult = visit(varDeclNode);
+    if (!varDeclResult.getType().is(SuperType.TYPE_INT)){
+      throw new SemaError(node,"Please initialize an Integer.");
+    }
+
+    ASTTernaryExprNode ternaryExprNode = node.getCondition();
+    ExprResult condResult = visit(ternaryExprNode);
+    if (!condResult.getType().is(SuperType.TYPE_BOOL)) {
+        throw new SemaError(ternaryExprNode, "The loop condition must be of type bool.");
+      }
+
+    ASTAssignExprNode assignExprNode = node.getIncrement();
+    ExprResult assignExprResult = visit(assignExprNode);
+    if (!assignExprResult.getType().is(SuperType.TYPE_INVALID)){
+      throw new SemaError(assignExprNode,"Please make sure, that you add an increment for the loop ");
+    };
+
+    Scope bodyScope = node.getScope();
+    currentScope.push(bodyScope);
+
+    ASTStmtLstNode stmtLstNode = node.getBody();
+    visit(stmtLstNode);
+
+    currentScope.pop();
+
+    return new ExprResult(new Type(SuperType.TYPE_INVALID));
+  }
+
 }
